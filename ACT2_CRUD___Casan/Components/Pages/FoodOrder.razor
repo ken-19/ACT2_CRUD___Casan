@@ -1,0 +1,118 @@
+@page "/foodorder"
+@using ACT2_CRUD___Casan.Data
+@inject DatabaseService DbService
+
+<PageTitle>Food Ordering</PageTitle>
+
+<h1>Food Ordering</h1>
+
+<div class="card">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <label>Name:</label>
+                <input class="form-control" @bind="foodItem.Name" />
+            </div>
+            <div class="col-md-6">
+                <label>Price:</label>
+                <input type="number" class="form-control" @bind="foodItem.Price" />
+            </div>
+        </div>
+        <div class="row mt-2">
+            <div class="col-md-12">
+                <label>Description:</label>
+                <textarea class="form-control" @bind="foodItem.Description"></textarea>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-md-12">
+                <button class="btn btn-primary" @onclick="AddFoodItem">Add</button>
+                <button class="btn btn-success" @onclick="UpdateFoodItem">Update</button>
+                <button class="btn btn-secondary" @onclick="ClearFields">Clear</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr />
+
+<h3>Order List</h3>
+
+@if (foodItems == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in foodItems)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Name</td>
+                    <td>@item.Description</td>
+                    <td>@item.Price.ToString("C")</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => SelectFoodItem(item)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteFoodItem(item.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<FoodItem>? foodItems;
+    private FoodItem foodItem = new FoodItem();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFoodItems();
+    }
+
+    private async Task LoadFoodItems()
+    {
+        foodItems = await DbService.GetFoodItemsAsync();
+    }
+
+    private async Task AddFoodItem()
+    {
+        await DbService.AddFoodItemAsync(foodItem);
+        ClearFields();
+        await LoadFoodItems();
+    }
+
+    private async Task UpdateFoodItem()
+    {
+        await DbService.UpdateFoodItemAsync(foodItem);
+        ClearFields();
+        await LoadFoodItems();
+    }
+
+    private async Task DeleteFoodItem(int id)
+    {
+        await DbService.DeleteFoodItemAsync(id);
+        await LoadFoodItems();
+    }
+
+    private void SelectFoodItem(FoodItem selectedItem)
+    {
+        foodItem = selectedItem;
+    }
+
+    private void ClearFields()
+    {
+        foodItem = new FoodItem();
+    }
+}
